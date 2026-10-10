@@ -24,14 +24,14 @@ export function ActionForm({
   );
 }
 
-export function Field({ label, name, type = "text", required, placeholder, children }: {
-  label: string; name: string; type?: string; required?: boolean; placeholder?: string; children?: React.ReactNode;
+export function Field({ label, name, type = "text", required, placeholder, defaultValue, children }: {
+  label: string; name: string; type?: string; required?: boolean; placeholder?: string; defaultValue?: string; children?: React.ReactNode;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block font-medium text-muted">{label}{required && " *"}</span>
       {children ?? (
-        <input name={name} type={type} required={required} placeholder={placeholder}
+        <input name={name} type={type} required={required} placeholder={placeholder} defaultValue={defaultValue}
           className={inputCls} />
       )}
     </label>
