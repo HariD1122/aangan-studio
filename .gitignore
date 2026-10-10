@@ -43,3 +43,6 @@ next-env.d.ts
 # internal business knowledge: keep out of git until the repo is confirmed private
 knowledge/pricing.md
 knowledge/corpus/
+
+.vercel
+.env*
