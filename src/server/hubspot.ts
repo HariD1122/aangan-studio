@@ -32,7 +32,7 @@ function friendly(status: number, body: unknown): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function hs(method: string, path: string, body?: unknown): Promise<any> {
+export async function hs(method: string, path: string, body?: unknown): Promise<any> {
   if (!process.env.HUBSPOT_PRIVATE_APP_TOKEN) throw new HubSpotError(0, "HubSpot token is not configured.");
   for (let attempt = 0; ; attempt++) {
     let res: Response;

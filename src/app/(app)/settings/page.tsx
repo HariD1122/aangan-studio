@@ -92,7 +92,7 @@ export default async function Settings() {
           <h2 className="mb-2 text-lg font-semibold">Who owns what</h2>
           <ul className="space-y-2 text-sm">
             <li><Badge tone="success">App → HubSpot</Badge> contact details, project context, the budget the customer <em>stated</em>, assigned designer, live status.</li>
-            <li><Badge tone="warning">Admin in HubSpot</Badge> final budget (the deal <strong>Amount</strong>) and outcome (deal stage <strong>Deal Won</strong> / <strong>Deal Lost</strong>, plus the lost reason).</li>
+            <li><Badge tone="warning">Admin in HubSpot</Badge> the deal <strong>Amount</strong> and the deal stage. While a lead is in progress, type the <em>quote</em> in Amount. When you move the deal to <strong>Deal Won</strong>, that Amount is the revenue. Use <strong>Deal Lost</strong> plus a lost reason for lost leads. The <strong>Summary</strong> page reads these.</li>
             <li><Badge>Never sent</Badge> tasks and meetings. The app also never overwrites Amount or the deal stage after a deal is created.</li>
           </ul>
         </Card>
