@@ -1,42 +1,29 @@
-import Link from "next/link";
 import { requireUser, type Role } from "@/server/auth";
 import { logoutAction } from "@/server/actions";
+import { MobileNav, Sidebar, type NavItem } from "@/components/shell/nav";
+import { Topbar } from "@/components/shell/topbar";
 
-const NAV: { href: string; label: string; roles: Role[] }[] = [
-  { href: "/dashboard", label: "Dashboard", roles: ["admin", "front_desk", "designer", "viewer"] },
-  { href: "/clients", label: "Clients", roles: ["admin", "front_desk", "designer", "viewer"] },
-  { href: "/designers", label: "Designers", roles: ["admin", "front_desk", "designer", "viewer"] },
-  { href: "/staff", label: "Staff & access", roles: ["admin"] },
+const NAV: (NavItem & { roles: Role[] })[] = [
+  { href: "/dashboard", label: "Dashboard", icon: "home", roles: ["admin", "front_desk", "designer", "viewer"] },
+  { href: "/clients", label: "Clients", icon: "clients", roles: ["admin", "front_desk", "designer", "viewer"] },
+  { href: "/designers", label: "Designers", icon: "designers", roles: ["admin", "front_desk", "viewer"] },
+  { href: "/staff", label: "Staff", icon: "staff", roles: ["admin"] },
 ];
 
 const ROLE_LABEL: Record<Role, string> = { admin: "Admin / Owner", front_desk: "Front desk", designer: "Designer", viewer: "Viewer (read-only)" };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
+  const items: NavItem[] = NAV.filter((n) => n.roles.includes(user.role)).map(({ href, label, icon }) => ({ href, label, icon }));
   return (
-    <div className="flex min-h-screen bg-stone-50 text-slate-900">
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-stone-200 bg-white p-4 md:flex">
-        <div className="mb-6 text-lg font-semibold">Aangan Studio</div>
-        <nav className="flex flex-1 flex-col gap-1" aria-label="Main">
-          {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
-            <Link key={n.href} href={n.href} className="rounded px-3 py-2 text-sm hover:bg-amber-50 focus:bg-amber-50 focus:outline-none focus:ring-1 focus:ring-slate-900">
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
+    <div className="flex min-h-screen">
+      <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2">Skip to content</a>
+      <Sidebar items={items} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3">
-          <nav className="flex gap-3 text-sm md:hidden" aria-label="Mobile">
-            {NAV.filter((n) => n.roles.includes(user.role)).map((n) => <Link key={n.href} href={n.href}>{n.label}</Link>)}
-          </nav>
-          <div className="ml-auto flex items-center gap-4 text-sm">
-            <span>{user.fullName || user.email} <span className="text-slate-500">· {ROLE_LABEL[user.role]}</span></span>
-            <form action={logoutAction}><button className="rounded border border-stone-300 px-3 py-1 hover:bg-stone-100">Sign out</button></form>
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-8">{children}</main>
+        <Topbar name={user.fullName || user.email} roleLabel={ROLE_LABEL[user.role]} signOut={logoutAction} />
+        <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-10">{children}</main>
       </div>
+      <MobileNav items={items} />
     </div>
   );
 }

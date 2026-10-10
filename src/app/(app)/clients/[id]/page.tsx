@@ -35,12 +35,12 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
     <div className="max-w-2xl">
       <Link href="/clients" className="text-sm underline">← Clients</Link>
       <h1 className="mb-1 mt-2 text-2xl font-semibold">{cl.full_name}</h1>
-      <p className="mb-6 text-sm text-slate-500">
-        Assigned designer: {asg ? <Link className="underline" href={`/designers/${asg.id}`}>{asg.full_name}</Link> : <span className="text-amber-700">Unassigned</span>}
+      <p className="mb-6 text-sm text-muted">
+        Assigned designer: {asg ? <Link className="underline" href={`/designers/${asg.id}`}>{asg.full_name}</Link> : <span className="text-warning">Unassigned</span>}
       </p>
-      <dl className="divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white">
+      <dl className="divide-y divide-line rounded-xl border border-line bg-surface">
         {rows.map(([k, v]) => (
-          <div key={k} className="grid grid-cols-3 gap-4 p-3 text-sm"><dt className="text-slate-500">{k}</dt><dd className="col-span-2 whitespace-pre-wrap">{v}</dd></div>
+          <div key={k} className="grid grid-cols-3 gap-4 p-3 text-sm"><dt className="text-muted">{k}</dt><dd className="col-span-2 whitespace-pre-wrap">{v}</dd></div>
         ))}
       </dl>
       {user.canAssign && (

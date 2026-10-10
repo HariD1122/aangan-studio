@@ -2,6 +2,9 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { withUser } from "@/server/db";
 import { formatBudget } from "@/lib/format";
+import { Suspense } from "react";
+import { SearchBox } from "@/components/shell/search-box";
+import { Badge, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Clients – Aangan Studio" };
 const PAGE = 25;
@@ -26,36 +29,57 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
   const more = rows.length > PAGE;
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Clients</h1>
-        {canCreate && <Link href="/clients/new" className="rounded bg-slate-900 px-4 py-2 text-sm text-white">Add client</Link>}
-      </div>
-      <form className="mb-4"><input name="q" defaultValue={q} placeholder="Search name or phone" aria-label="Search clients"
-        className="w-full max-w-sm rounded border border-stone-300 bg-white px-3 py-2 text-sm" /></form>
+      <PageHeader title="Clients" subtitle={user.role === "designer" ? "Clients assigned to you" : undefined}
+        action={canCreate ? <LinkButton href="/clients/new">Add client</LinkButton> : undefined} />
+      <Suspense fallback={null}><SearchBox className="mb-4 max-w-sm" /></Suspense>
       {rows.length === 0 ? (
-        <p className="rounded border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-slate-500">
-          {user.role === "designer" ? "No clients are assigned to you yet." : "No clients found."}
-        </p>
+        q ? (
+          <EmptyState title="No clients match your search" action={<LinkButton href="/clients" variant="secondary">Clear search</LinkButton>}>
+            Try a different name or part of the phone number.
+          </EmptyState>
+        ) : user.role === "designer" ? (
+          <EmptyState title="No clients assigned yet">When the studio assigns you a client, they will appear here.</EmptyState>
+        ) : (
+          <EmptyState title="No clients yet" action={canCreate ? <LinkButton href="/clients/new">Add the first client</LinkButton> : undefined}>
+            Clients appear here after a call is logged or someone adds them.
+          </EmptyState>
+        )
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-stone-100 text-slate-600">
-              <tr><th className="p-3">Name</th><th className="p-3">Phone</th><th className="p-3">Project</th><th className="p-3">Budget</th><th className="p-3">Stage</th><th className="p-3">Designer</th></tr>
-            </thead>
-            <tbody>
-              {rows.slice(0, PAGE).map((r) => (
-                <tr key={r.id} className="border-t border-stone-100 hover:bg-amber-50/40">
-                  <td className="p-3"><Link className="font-medium underline" href={`/clients/${r.id}`}>{r.full_name}</Link></td>
-                  <td className="p-3">{r.phone}</td>
-                  <td className="p-3">{r.project_type ?? "—"}</td>
-                  <td className="p-3">{formatBudget(r.budget_min, r.budget_max)}</td>
-                  <td className="p-3">{r.lead_stage}</td>
-                  <td className="p-3">{r.designer ?? <span className="text-amber-700">Unassigned</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <ul className="space-y-3 md:hidden">
+            {rows.slice(0, PAGE).map((r) => (
+              <li key={r.id}>
+                <Link href={`/clients/${r.id}`} className="block rounded-xl border border-line bg-surface p-4 active:bg-accent-soft">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium">{r.full_name}</span>
+                    <Badge>{r.lead_stage}</Badge>
+                  </div>
+                  <div className="mt-1 text-sm text-muted">{r.project_type ?? "Project type not set"} · {formatBudget(r.budget_min, r.budget_max)}</div>
+                  <div className="mt-1 text-sm">{r.designer ?? <span className="text-warning">Unassigned</span>}</div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto rounded-xl border border-line bg-surface md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-accent-soft/60 text-muted">
+                <tr><th className="p-3 font-medium">Name</th><th className="p-3 font-medium">Phone</th><th className="p-3 font-medium">Project</th><th className="p-3 font-medium">Budget</th><th className="p-3 font-medium">Stage</th><th className="p-3 font-medium">Designer</th></tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, PAGE).map((r) => (
+                  <tr key={r.id} className="border-t border-line hover:bg-accent-soft/40">
+                    <td className="p-3"><Link className="font-medium text-accent-strong underline" href={`/clients/${r.id}`}>{r.full_name}</Link></td>
+                    <td className="p-3">{r.phone}</td>
+                    <td className="p-3">{r.project_type ?? "—"}</td>
+                    <td className="p-3">{formatBudget(r.budget_min, r.budget_max)}</td>
+                    <td className="p-3"><Badge>{r.lead_stage}</Badge></td>
+                    <td className="p-3">{r.designer ?? <span className="text-warning">Unassigned</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       <div className="mt-4 flex gap-4 text-sm">
         {page > 1 && <Link href={`/clients?q=${encodeURIComponent(q)}&page=${page - 1}`}>← Previous</Link>}

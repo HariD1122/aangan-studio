@@ -9,7 +9,7 @@ export default async function NewClient() {
   return (
     <div className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-semibold">Add client</h1>
-      <p className="mb-4 text-sm text-slate-500">Only enter what the customer actually said. Leave unknown fields blank; estimates are not commitments.</p>
+      <p className="mb-4 text-sm text-muted">Only enter what the customer actually said. Leave unknown fields blank; estimates are not commitments.</p>
       <ActionForm action={createClientAction} submitLabel="Save client" className="grid gap-4 sm:grid-cols-2">
         <Field label="Full name" name="fullName" required />
         <Field label="Phone" name="phone" required placeholder="98XXXXXXXX" />

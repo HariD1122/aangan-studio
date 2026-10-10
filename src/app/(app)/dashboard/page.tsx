@@ -1,5 +1,6 @@
 import { requireUser } from "@/server/auth";
 import { withUser } from "@/server/db";
+import { Card, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Dashboard – Aangan Studio" };
 
@@ -20,16 +21,16 @@ export default async function Dashboard() {
   ];
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
+      <PageHeader title={`Hello, ${(user.fullName || user.email).split(" ")[0]}`} subtitle={new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "full" }).format(new Date())} />
       <div className="grid gap-4 sm:grid-cols-3">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-stone-200 bg-white p-5">
-            <div className="text-sm text-slate-500">{c.label}</div>
-            <div className="mt-1 text-3xl font-semibold">{c.value}</div>
-          </div>
+          <Card key={c.label} className="p-4">
+            <div className="text-sm text-muted">{c.label}</div>
+            <div className="mt-1 text-3xl font-semibold tabular-nums">{c.value}</div>
+          </Card>
         ))}
       </div>
-      <p className="mt-6 text-sm text-slate-500">
+      <p className="mt-6 text-sm text-muted">
         These are live counts from the database. Call, pipeline and response-time metrics will appear once phone enquiries
         are connected (later phase); until then they are not shown rather than estimated.
       </p>

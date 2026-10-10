@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import type { FormState } from "@/server/actions";
+import { btn, inputCls } from "@/components/ui";
 
 export function ActionForm({
   action, children, submitLabel, className = "",
@@ -14,9 +15,9 @@ export function ActionForm({
   return (
     <form action={run} className={className}>
       {children}
-      {state?.error && <p role="alert" className="mt-3 rounded bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</p>}
-      {state?.ok && <p role="status" className="mt-3 rounded bg-green-50 px-3 py-2 text-sm text-green-800">{state.ok}</p>}
-      <button disabled={pending} className="mt-4 rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+      {state?.error && <p role="alert" className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{state.error}</p>}
+      {state?.ok && <p role="status" className="mt-3 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">{state.ok}</p>}
+      <button disabled={pending} className={`mt-4 ${btn.base} ${btn.primary}`}>
         {pending ? "Saving…" : submitLabel}
       </button>
     </form>
@@ -28,13 +29,13 @@ export function Field({ label, name, type = "text", required, placeholder, child
 }) {
   return (
     <label className="block text-sm">
-      <span className="mb-1 block font-medium text-slate-700">{label}{required && " *"}</span>
+      <span className="mb-1 block font-medium text-muted">{label}{required && " *"}</span>
       {children ?? (
         <input name={name} type={type} required={required} placeholder={placeholder}
-          className="w-full rounded border border-stone-300 bg-white px-3 py-2 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900" />
+          className={inputCls} />
       )}
     </label>
   );
 }
 
-export const selectCls = "w-full rounded border border-stone-300 bg-white px-3 py-2 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900";
+export const selectCls = inputCls;

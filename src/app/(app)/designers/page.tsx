@@ -18,13 +18,13 @@ export default async function Designers() {
     <div>
       <h1 className="mb-6 text-2xl font-semibold">Designers</h1>
       {rows.length === 0 ? (
-        <p className="rounded border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-slate-500">No designers yet.</p>
+        <p className="rounded border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">No designers yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {rows.map((d) => (
-            <Link key={d.id} href={`/designers/${d.id}`} className="rounded-lg border border-stone-200 bg-white p-4 hover:bg-amber-50/40">
-              <div className="font-medium">{d.full_name} {!d.is_active && <span className="text-xs text-slate-500">(inactive)</span>}</div>
-              <div className="mt-1 text-sm text-slate-500">{d.specializations.length ? d.specializations.join(", ") : "No specializations listed"}</div>
+            <Link key={d.id} href={`/designers/${d.id}`} className="rounded-xl border border-line bg-surface p-4 hover:bg-accent-soft/60">
+              <div className="font-medium">{d.full_name} {!d.is_active && <span className="text-xs text-muted">(inactive)</span>}</div>
+              <div className="mt-1 text-sm text-muted">{d.specializations.length ? d.specializations.join(", ") : "No specializations listed"}</div>
               <div className="mt-2 text-sm">{d.clients} active client{d.clients === 1 ? "" : "s"}</div>
             </Link>
           ))}

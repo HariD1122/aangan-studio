@@ -12,15 +12,15 @@ export default async function Staff() {
   return (
     <div className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-semibold">Staff & access</h1>
-      <ul className="mb-10 divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white">
+      <ul className="mb-10 divide-y divide-line rounded-xl border border-line bg-surface">
         {users.map((u) => (
           <li key={u.id} className="p-3 text-sm">
             <div className="flex justify-between">
-              <span className="font-medium">{u.full_name || u.email} <span className="text-slate-500">({u.email})</span></span>
-              <span className="text-slate-500">{u.role}{u.can_assign_leads && u.role !== "admin" ? " · can assign" : ""}</span>
+              <span className="font-medium">{u.full_name || u.email} <span className="text-muted">({u.email})</span></span>
+              <span className="text-muted">{u.role}{u.can_assign_leads && u.role !== "admin" ? " · can assign" : ""}</span>
             </div>
             <details className="mt-2">
-              <summary className="cursor-pointer text-slate-500">Reset password</summary>
+              <summary className="cursor-pointer text-muted">Reset password</summary>
               <ActionForm action={resetPasswordAction} submitLabel="Reset password" className="mt-2 max-w-xs">
                 <input type="hidden" name="userId" value={u.id} />
                 <Field label="New password (min 10 characters)" name="password" type="password" required />
@@ -30,7 +30,7 @@ export default async function Staff() {
         ))}
       </ul>
       <h2 className="mb-3 text-lg font-semibold">Add staff user</h2>
-      <p className="mb-4 text-sm text-slate-500">Designers are created from the Designers page so their profile and login stay linked.</p>
+      <p className="mb-4 text-sm text-muted">Designers are created from the Designers page so their profile and login stay linked.</p>
       <ActionForm action={createStaffAction} submitLabel="Create user" className="grid gap-4 sm:grid-cols-2">
         <Field label="Full name" name="fullName" required />
         <Field label="Email" name="email" type="email" required />
