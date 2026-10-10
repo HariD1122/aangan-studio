@@ -56,4 +56,4 @@ export function Skeleton({ className = "" }: { className?: string }) {
 }
 
 export const inputCls =
-  "w-full min-h-10 rounded-lg border border-line bg-surface px-3 py-2 text-sm placeholder:text-muted/70 focus:border-accent";
+  "w-full min-h-10 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-black placeholder:text-muted/70 focus:border-accent";
