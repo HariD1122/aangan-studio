@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "purpose": "Studio memory layer. Loaded into the LLM context for call-summary extraction, qualification and drafting replies.",
+  "documents": [
+    { "file": "services.md", "kind": "policy", "audience": "customer_safe", "use": ["answer_questions", "qualify", "draft_reply"] },
+    { "file": "qualified.md", "kind": "decision_rubric", "audience": "internal_only", "owner": "Nikhil Deshpande", "use": ["qualify", "decide_handoff"] },
+    { "file": "pricing.md", "kind": "pricing_guide", "audience": "internal_only", "never_quote": true, "use": ["budget_sanity_check_only"] },
+    { "file": "corpus/enquiries-sep-2026.txt", "kind": "examples", "audience": "internal_only", "contains_personal_data": "anonymised by owner", "use": ["few_shot_examples", "evaluation_set"] }
+  ],
+  "hard_rules": [
+    "Never state any price, range or per-sq-ft figure to a customer. Only the approved deflection sentence from pricing.md.",
+    "Never confirm an appointment or promise on the studio's behalf without human confirmation.",
+    "Qualification output is a SUGGESTION with reasons; a human confirms."
+  ]
+}
