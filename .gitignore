@@ -46,3 +46,6 @@ knowledge/corpus/
 
 .vercel
 .env*
+
+# private diagrams that contain logins
+/private/
