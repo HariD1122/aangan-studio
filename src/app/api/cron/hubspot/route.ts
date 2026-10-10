@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { processPending } from "@/server/hubspot";
 import { processNotifications } from "@/server/telegram";
+import { retryStuckCalls } from "@/server/voice-ingest";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -12,7 +13,8 @@ export async function GET(req: Request) {
   const given = (req.headers.get("authorization") ?? "").replace(/^Bearer /, "");
   const ok = !!secret && given.length === secret.length && timingSafeEqual(Buffer.from(given), Buffer.from(secret));
   if (!ok) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const calls = await retryStuckCalls(3);
   const hubspot = await processPending(25);
   const telegram = await processNotifications(10);
-  return NextResponse.json({ ...hubspot, telegram });
+  return NextResponse.json({ ...hubspot, telegram, callsRetried: calls });
 }

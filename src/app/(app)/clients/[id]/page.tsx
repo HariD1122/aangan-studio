@@ -6,6 +6,7 @@ import { assignClientAction } from "@/server/actions";
 import { formatBudget, formatIST } from "@/lib/format";
 import { dealUrl } from "@/server/hubspot";
 import { Badge, Card } from "@/components/ui";
+import { CallSummary } from "@/components/call-summary";
 import { ActionForm, Field, selectCls } from "../../../form";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,10 +22,13 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
       "select d.id, d.full_name, a.assigned_at from designer_assignments a join designers d on d.id = a.designer_id where a.client_id = $1 and a.unassigned_at is null", [id])).rows[0];
     const designers = user.canAssign ? (await c.query("select id, full_name from designers where is_active order by full_name")).rows : [];
     const hsync = user.role === "admin" ? (await c.query("select status, last_synced_at, last_error, hubspot_deal_id from hubspot_sync where client_id = $1", [id])).rows[0] ?? null : null;
-    return { cl, asg, designers, hsync };
+    const calls = (await c.query(
+      `select id, created_at, status, duration_seconds, transcript, provider_summary, recording_url, error, notes
+         from voice_calls where client_id = $1 order by created_at desc limit 5`, [id])).rows;
+    return { cl, asg, designers, hsync, calls };
   });
   if (!data) notFound();
-  const { cl, asg, designers, hsync } = data;
+  const { cl, asg, designers, hsync, calls } = data;
   const rows: [string, React.ReactNode][] = [
     ["Phone", cl.phone], ["Email", cl.email ?? "—"], ["Project type", cl.project_type ?? "—"],
     ["Location", cl.project_location ?? "—"], ["Property type", cl.property_type ?? "—"],
@@ -46,6 +50,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
           <div key={k} className="grid grid-cols-3 gap-4 p-3 text-sm"><dt className="text-muted">{k}</dt><dd className="col-span-2 whitespace-pre-wrap">{v}</dd></div>
         ))}
       </dl>
+      <CallSummary calls={calls} isAdmin={user.role === "admin"} />
       {hsync && (
         <Card className="mt-6 p-4">
           <h2 className="mb-2 text-lg font-semibold">HubSpot</h2>

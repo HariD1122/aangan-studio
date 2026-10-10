@@ -2,6 +2,8 @@ import { requireRole } from "@/server/auth";
 import { withUser } from "@/server/db";
 import { getHealth, dealUrl } from "@/server/hubspot";
 import { telegramHealth } from "@/server/telegram";
+import { getAgentInfo } from "@/server/vaani";
+import { runSampleCallAction } from "@/server/voice-actions";
 import { telegramSendPendingAction, telegramTestAction } from "@/server/telegram-actions";
 import { resyncAllAction, retryClientAction, setNewDealStageAction, setupFieldsAction, syncNowAction } from "@/server/hubspot-actions";
 import { istDateTime } from "@/lib/time";
@@ -13,9 +15,10 @@ export const metadata = { title: "Integrations – Aangan Studio" };
 
 export default async function Settings() {
   const me = await requireRole("admin");
-  const [health, tg, data] = await Promise.all([
+  const [health, tg, agent, data] = await Promise.all([
     getHealth(),
     telegramHealth(),
+    getAgentInfo(),
     withUser(me.id, async (c) => {
       const counts = (await c.query(
         `select count(*) filter (where status = 'synced')::int as synced, count(*) filter (where status = 'pending')::int as pending,
@@ -31,7 +34,10 @@ export default async function Settings() {
                 count(*) filter (where status = 'failed')::int as failed, max(sent_at) as last_sent from notification_queue`)).rows[0];
       const alertProblem = (await c.query(
         "select last_error from notification_queue where status = 'failed' and last_error is not null order by created_at desc limit 1")).rows[0]?.last_error ?? null;
-      return { counts, open, recent, alerts, alertProblem };
+      const calls = (await c.query(
+        `select v.id, v.created_at, v.status, v.phone, v.client_id, v.error, cl.full_name from voice_calls v left join clients cl on cl.id = v.client_id
+          order by v.created_at desc limit 8`)).rows;
+      return { counts, open, recent, alerts, alertProblem, calls };
     }),
   ]);
 
@@ -52,6 +58,40 @@ export default async function Settings() {
           <RunButton action={syncNowAction} label="Sync now" variant={health.fieldsReady ? "primary" : "secondary"} />
           <RunButton action={resyncAllAction} label="Queue every client again" />
         </div>
+      </Card>
+
+      <Card className="mb-6 p-4">
+        <h2 className="mb-3 text-lg font-semibold">VaaniVoice phone agent</h2>
+        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+          <div><dt className="text-muted">Connection</dt><dd className="mt-1">{agent.connected ? <Badge tone="success">Connected</Badge> : <Badge tone="danger">Not connected</Badge>}</dd></div>
+          <div><dt className="text-muted">Agent</dt><dd className="mt-1">{agent.agentName ?? "—"}{agent.status ? <span className="text-muted"> · {agent.status}</span> : null}</dd></div>
+          <div><dt className="text-muted">Phone number for callers</dt><dd className="mt-1">{agent.inboundNumber ? <Badge tone="success">{agent.inboundNumber}</Badge> : <Badge tone="warning">None attached yet</Badge>}</dd></div>
+        </dl>
+        {agent.error && <p role="alert" className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{agent.error}</p>}
+        {agent.connected && !agent.inboundNumber && (
+          <p role="note" className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">Customers cannot phone the agent yet. In your VaaniVoice dashboard, go to Settings → Telephony, get a phone number, and assign it to this agent.</p>
+        )}
+        <div className="mt-4">
+          <div className="text-sm font-medium">Webhook address (paste into VaaniVoice → Settings → Webhooks)</div>
+          <code className="mt-1 block select-all break-all rounded-lg bg-canvas p-2 text-xs">{process.env.APP_URL ?? "https://aangan-studio-azure.vercel.app"}/api/webhooks/vaani?key={process.env.VAANIVOICE_WEBHOOK_SECRET ?? "(secret not set)"}</code>
+          <p className="mt-1 text-xs text-muted">Keep this address private: anyone with it can send fake calls.</p>
+        </div>
+        <div className="mt-4 flex flex-wrap items-start gap-3">
+          <RunButton action={runSampleCallAction} label="Run a sample call (no phone needed)" variant="primary" />
+        </div>
+        {data.calls.length > 0 && (
+          <div className="mt-4">
+            <div className="mb-2 text-sm font-medium">Recent calls</div>
+            <div className="divide-y divide-line rounded-lg border border-line text-sm">
+              {data.calls.map((c) => (
+                <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 p-2">
+                  <span>{istDateTime(c.created_at)} · {c.phone ?? "no number"} {c.full_name ? <>· <a className="text-accent-strong underline" href={`/clients/${c.client_id}`}>{c.full_name}</a></> : null}</span>
+                  <Badge tone={c.status === "done" ? "success" : c.status === "failed" || c.status === "needs_review" ? "danger" : "warning"}>{c.status === "needs_review" ? "needs review" : c.status}</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="mb-6 p-4">
