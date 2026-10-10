@@ -6,6 +6,7 @@ import { hashPassword, login, logout, requireRole, requireUser } from "./auth";
 import { pool, withUser } from "./db";
 import type { PoolClient } from "pg";
 import { normalizePhone } from "@/lib/phone";
+import { kickSync } from "./hubspot";
 
 export type FormState = { error?: string; ok?: string } | undefined;
 
@@ -138,6 +139,7 @@ export async function createClientAction(_: FormState, fd: FormData): Promise<Fo
     return { error: "Could not save the client. Please try again." };
   }
   revalidatePath("/clients");
+  kickSync();
   redirect(`/clients/${id}`);
 }
 
@@ -178,6 +180,7 @@ export async function assignClientAction(_: FormState, fd: FormData): Promise<Fo
   revalidatePath(`/clients/${p.data.clientId}`);
   revalidatePath("/clients");
   revalidatePath("/designers");
+  kickSync();
   return { ok: "Designer assigned." };
 }
 

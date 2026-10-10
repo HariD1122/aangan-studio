@@ -10,7 +10,10 @@
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --env-file=.env.local node_modules/vitest/vitest.mjs run",
-    "create-admin": "node --env-file=.env.local scripts/create-admin.mjs"
+    "create-admin": "node --env-file=.env.local scripts/create-admin.mjs",
+    "demo:seed": "node --env-file=.env.local scripts/seed-demo.mjs",
+    "demo:outcomes": "node --env-file=.env.local scripts/demo-outcomes.mjs",
+    "demo:remove": "node --env-file=.env.local scripts/demo-remove.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1149.0",

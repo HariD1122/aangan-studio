@@ -20,7 +20,8 @@ export default async function Dashboard() {
       select (select count(*) from clients)::int as clients,
              (select count(*) from clients cl where not exists
                 (select 1 from designer_assignments a where a.client_id = cl.id and a.unassigned_at is null))::int as unassigned,
-             (select count(*) from designers where is_active)::int as designers`)).rows[0] as { clients: number; unassigned: number; designers: number };
+             (select count(*) from designers where is_active)::int as designers,
+             (select count(*) from clients where is_demo)::int as demo`)).rows[0] as { clients: number; unassigned: number; designers: number; demo: number };
 
     // Designer view: row-level security limits these to their own rows.
     const requested = isDesigner ? (await c.query(
@@ -65,6 +66,11 @@ export default async function Dashboard() {
         subtitle={new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "full" }).format(new Date())}
         action={(isDesigner || isAdmin) ? <LinkButton href="/calendar" variant="secondary">{isAdmin ? "Team calendar" : "My calendar"}</LinkButton> : undefined}
       />
+      {s.counts.demo > 0 && (
+        <p role="note" className="mb-4 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
+          Demo data is present: {s.counts.demo} of the {s.counts.clients} clients are sample records marked DEMO. They are not real business results.
+        </p>
+      )}
       <div className={`grid gap-4 ${cards.length > 3 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {cards.map((c) => (
           <Card key={c.label} className="p-4">

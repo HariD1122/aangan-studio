@@ -6,6 +6,7 @@ import { requireRole } from "./auth";
 import { withUser } from "./db";
 import { parseIstLocal, istDateTime } from "@/lib/time";
 import type { FormState } from "./actions";
+import { kickSync } from "./hubspot";
 
 const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 const optStr = z.preprocess(blank, z.string().trim().max(2000).optional());
@@ -139,6 +140,7 @@ export async function respondMeetingAction(_: FormState, fd: FormData): Promise<
     return { error: "Could not save your answer. Please try again." };
   }
   refreshAll();
+  if (decision === "accept") kickSync();
   return { ok: decision === "accept" ? "Meeting accepted and added to your calendar." : "Meeting rejected. The admin can see your reason." };
 }
 

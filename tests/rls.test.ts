@@ -61,7 +61,7 @@ describe("Row Level Security", () => {
   it("admin, front desk and viewer see all clients", async () => {
     for (const k of ["admin", "desk", "viewer"]) {
       await as(ids[k]);
-      expect((await c.query("select 1 from clients")).rowCount).toBe(2);
+      expect((await c.query("select 1 from clients where full_name in ('Client A', 'Client B')")).rowCount).toBe(2);
     }
   });
   it("no logged-in user sees nothing", async () => {

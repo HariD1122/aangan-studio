@@ -4,13 +4,14 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export type NavItem = { href: string; label: string; icon: IconName };
-type IconName = "home" | "clients" | "designers" | "staff" | "calendar";
+type IconName = "home" | "clients" | "designers" | "staff" | "calendar" | "settings";
 
 const PATHS: Record<IconName, string> = {
   home: "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
   clients: "M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21c0-4 3.6-6 8-6s8 2 8 6",
   designers: "M4 20l4-1L19 8a2.1 2.1 0 0 0-3-3L5 16zM14 7l3 3",
   calendar: "M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M8 3v4M16 3v4",
+  settings: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4",
   staff: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
 };
 
