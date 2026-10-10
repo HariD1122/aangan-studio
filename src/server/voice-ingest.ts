@@ -109,6 +109,8 @@ export async function processCall(id: string): Promise<{ ok: boolean; clientId?:
          f.timeline, f.requirements, f.qualification_status, isSample ? "Sample call (test)" : "Phone call (VaaniVoice)", isSample],
       )).rows[0].id;
       created = true;
+      // Demo leads never alert by design, but a sample call is a test run: send its alert too (the message says 'Sample call (test)').
+      if (isSample) await pool.query("insert into notification_queue(kind, client_id) values ('new_lead', $1) on conflict do nothing", [clientId]);
     }
     await pool.query("update voice_calls set status = 'done', client_id = $2, notes = $3, transcript = coalesce(transcript, $4), error = $5 where id = $1",
       [id, clientId, JSON.stringify(notes), transcript, usedFallback ? "Gemini was unavailable; a person should review the transcript." : null]);
