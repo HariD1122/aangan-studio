@@ -7,6 +7,7 @@ import { pool, withUser } from "./db";
 import type { PoolClient } from "pg";
 import { normalizePhone } from "@/lib/phone";
 import { kickSync } from "./hubspot";
+import { kickNotifications } from "./telegram";
 
 export type FormState = { error?: string; ok?: string } | undefined;
 
@@ -140,6 +141,7 @@ export async function createClientAction(_: FormState, fd: FormData): Promise<Fo
   }
   revalidatePath("/clients");
   kickSync();
+  kickNotifications();
   redirect(`/clients/${id}`);
 }
 

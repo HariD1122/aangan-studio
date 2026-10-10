@@ -1,6 +1,8 @@
 import { requireRole } from "@/server/auth";
 import { withUser } from "@/server/db";
 import { getHealth, dealUrl } from "@/server/hubspot";
+import { telegramHealth } from "@/server/telegram";
+import { telegramSendPendingAction, telegramTestAction } from "@/server/telegram-actions";
 import { resyncAllAction, retryClientAction, setNewDealStageAction, setupFieldsAction, syncNowAction } from "@/server/hubspot-actions";
 import { istDateTime } from "@/lib/time";
 import { Badge, Card, PageHeader, btn } from "@/components/ui";
@@ -11,8 +13,9 @@ export const metadata = { title: "Integrations – Aangan Studio" };
 
 export default async function Settings() {
   const me = await requireRole("admin");
-  const [health, data] = await Promise.all([
+  const [health, tg, data] = await Promise.all([
     getHealth(),
+    telegramHealth(),
     withUser(me.id, async (c) => {
       const counts = (await c.query(
         `select count(*) filter (where status = 'synced')::int as synced, count(*) filter (where status = 'pending')::int as pending,
@@ -23,7 +26,12 @@ export default async function Settings() {
       const recent = (await c.query(
         `select hs.client_id, hs.hubspot_deal_id, hs.last_synced_at, c.full_name, c.is_demo from hubspot_sync hs join clients c on c.id = hs.client_id
           where hs.status = 'synced' order by hs.last_synced_at desc limit 8`)).rows;
-      return { counts, open, recent };
+      const alerts = (await c.query(
+        `select count(*) filter (where status = 'sent')::int as sent, count(*) filter (where status = 'pending')::int as pending,
+                count(*) filter (where status = 'failed')::int as failed, max(sent_at) as last_sent from notification_queue`)).rows[0];
+      const alertProblem = (await c.query(
+        "select last_error from notification_queue where status = 'failed' and last_error is not null order by created_at desc limit 1")).rows[0]?.last_error ?? null;
+      return { counts, open, recent, alerts, alertProblem };
     }),
   ]);
 
@@ -43,6 +51,22 @@ export default async function Settings() {
           {!health.fieldsReady && health.connected && <RunButton action={setupFieldsAction} label="Create HubSpot fields" variant="primary" />}
           <RunButton action={syncNowAction} label="Sync now" variant={health.fieldsReady ? "primary" : "secondary"} />
           <RunButton action={resyncAllAction} label="Queue every client again" />
+        </div>
+      </Card>
+
+      <Card className="mb-6 p-4">
+        <h2 className="mb-3 text-lg font-semibold">Telegram lead alerts</h2>
+        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+          <div><dt className="text-muted">Bot</dt><dd className="mt-1">{tg.botName ? <Badge tone="success">Connected · {tg.botName}</Badge> : <Badge tone="danger">Not connected</Badge>}</dd></div>
+          <div><dt className="text-muted">Group</dt><dd className="mt-1">{tg.groupName ? <Badge tone="success">{tg.groupName}</Badge> : tg.chatConfigured ? <Badge tone="danger">Not reachable</Badge> : <Badge tone="warning">Group not set yet</Badge>}</dd></div>
+          <div><dt className="text-muted">Alerts</dt><dd className="mt-1">{data.alerts.sent} sent · {data.alerts.pending} waiting · {data.alerts.failed} failed{data.alerts.last_sent ? ` · last ${istDateTime(data.alerts.last_sent)}` : ""}</dd></div>
+        </dl>
+        {tg.error && <p role="alert" className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{tg.error}</p>}
+        {data.alertProblem && <p role="alert" className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">Last alert problem: {data.alertProblem}</p>}
+        <p className="mt-3 text-sm text-muted">Each new lead is posted to the group with name, project, location, budget and a link. Phone numbers and emails are deliberately not sent to Telegram.</p>
+        <div className="mt-4 flex flex-wrap items-start gap-3">
+          <RunButton action={telegramTestAction} label="Send a test message" variant="primary" />
+          <RunButton action={telegramSendPendingAction} label="Send waiting alerts now" />
         </div>
       </Card>
 
